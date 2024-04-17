@@ -6,8 +6,7 @@ import java.io.*;
 class Heap
 {
     private int[] a;	   // heap array
-    private int[] hPos;	   // hPos[h[k]] == k
-    private int[] dist;    // dist[v] = priority of v
+    
 
     private int N;         // heap size
    
@@ -15,12 +14,10 @@ class Heap
     //    1. maximum heap size
     //    2. reference to the dist[] array
     //    3. reference to the hPos[] array
-    public Heap(int maxSize, int[] _dist, int[] _hPos) 
+    public Heap(int maxSize) 
     {
         N = 0;
         a = new int[maxSize + 1];
-        dist = _dist;
-        hPos = _hPos;
     }
 
 
@@ -30,43 +27,88 @@ class Heap
     }
 
 
-    public void siftUp( int k) 
+    public void siftUp( int k,int[] dist) 
     {
+        display();
         int v = a[k];
-
-        // code yourself
-        // must use hPos[] and dist[] arrays
+        /* 
+        System.out.println("k =" + k);
+        System.out.println("v =" + toChar(v));
+        System.out.println("a[k] = " + a[k]);
+        System.out.println("dist[v" + "(" + toChar(v) + ")" + "] = " + dist[v]);
+        System.out.println("k/2 =" + k/2);
+        */
+        if(getLength(a) > 1){
+        while(dist[v] < dist[a[k/2]] && k > 1){
+            System.out.println("k = " + k);
+            System.out.println("a[k] = " + a[k]);
+            a[k] = a[k/2];
+            k = k/2;
+        }
+        }  
+        a[k] = v;
+        
     }
 
-
-    public void siftDown( int k) 
+    public int getLength(int a[]){
+        int count = 0;
+        for(int i = 0;i < a.length; i++){
+            if(a[i] != 0){
+                count++;
+            }
+        }
+        return count;
+    }
+    public void siftDown( int k,int[] dist) 
     {
         int v, j;
-       
-        v = a[k];  
         
-        // code yourself 
-        // must use hPos[] and dist[] arrays
+        v = a[k];  
+        j = 2*k;
+            
+        while(j < N){
+            if(j < N && dist[a[j+1]] < dist[a[j]]){
+                j++;
+            }
+            if(v <= a[j]){
+                break;
+            }
+            a[k] = a[j];
+            k = j;
+            j = 2*k;
+        }
+        a[k] = v;
     }
 
 
-    public void insert( int x) 
+    public void insert( int x,int[] dist) 
     {
+        System.out.println("Before insert a.len =" + getLength(a));
         a[++N] = x;
-        siftUp( N);
+        siftUp( N,dist);
     }
 
 
-    public int remove() 
+    public int remove(int[] dist) 
     {   
         int v = a[1];
-        hPos[v] = 0; // v is no longer in heap
         a[N+1] = 0;  // put null node into empty spot
         
         a[1] = a[N--];
-        siftDown(1);
+        siftDown(1,dist);
         
         return v;
+    }
+
+    public void display(){
+        for(int i =1;i < getLength(a);i++){
+            System.out.print(a[i] + "-> ");
+        }
+        System.out.println();
+    }
+    public char toChar(int u)
+    {  
+        return (char)(u + 64);
     }
 
 }
@@ -138,6 +180,7 @@ class Queue{
     public boolean isEmpty(){
         return head == null;
     }
+    
 }
 
 
@@ -151,7 +194,8 @@ class Graph {
     private Node[] adj;
     private Node z;
     private int[] mst_pa;
-    
+
+    //private int[] dist;
     // used for traversing graph
     private boolean[] visited;
 
@@ -278,7 +322,7 @@ class Graph {
     }
 
     // convert vertex into char for pretty printing
-    private char toChar(int u)
+    public char toChar(int u)
     {  
         return (char)(u + 64);
     }
@@ -498,9 +542,73 @@ class Graph {
             System.out.println("");
     }
 
-    public void SPT_Dijkstra(int s)
+    public int[] SPT_Dijkstra(int s)
     {
+        int[] dist = new int[V+1];
+        boolean visited[] = new boolean[V+1];
 
+        for(int i =0; i< V+1;i++){
+            dist[i] = Integer.MAX_VALUE;
+        }
+        Heap heap = new Heap(V);
+        dist[s] = 0;
+        heap.insert(s, dist);
+        while(!heap.isEmpty()){
+            //System.out.println("Heap not empty");
+            int current = heap.remove(dist);
+            System.out.println("New current = " + toChar(current));
+            if(visited[current]){
+                continue;
+            }
+            
+            visited[current] = true;
+            
+            int[] neighbors = getNeighbours(current);
+            
+            for(int i = 0; i < heap.getLength(neighbors); i++){
+                System.out.println(toChar(current) + " has neighbor " + toChar(neighbors[i]));
+            }
+            for(int i = 0; i < heap.getLength(neighbors); i++){
+                int tempDist = dist[current] +  getWeight(current, neighbors[i]);
+                System.err.println(toChar(current) + "->" + toChar(neighbors[i]) + " weight = " + getWeight(current, neighbors[i]));
+                System.out.println("prev dist =" + dist[neighbors[i]]);
+                System.out.println("tempDist = " + tempDist);
+                
+                if(tempDist < dist[neighbors[i]]){
+                    dist[neighbors[i]] = tempDist;
+                    System.out.println("new dist for " + toChar(neighbors[i]) + " =" + dist[neighbors[i]]);
+                    
+                    System.out.println("Inserting " + toChar(neighbors[i]) + " into heap");
+                    heap.insert(neighbors[i], dist);
+                }
+            }
+        }
+        return dist;
+    }
+
+    private int[] getNeighbours(int v){
+        System.out.println("Getting neighbours of vert:" + v + toChar(v));
+        int[] neighbors = new int[V];
+        Node curr;
+        curr = adj[v];
+        int i = 0;
+        while(curr != z){
+            neighbors[i] = curr.vert;
+            curr = curr.next;
+            i++;
+        }
+        return neighbors;
+    }
+
+    private int getWeight(int v, int u){
+        Node curr = adj[v];
+        while(curr != z){
+            if(curr.vert == u){
+                break;
+            }
+            curr = curr.next;
+        }
+        return curr.wgt;
     }
 
 }
@@ -508,16 +616,26 @@ class Graph {
 public class GraphLists {
     public static void main(String[] args) throws IOException
     {
-        int s = 12;
+        int s = 1;
         String fname = "wGraph1.txt";               
 
         Graph g = new Graph(fname);
-        //q.display();
-       // g.display();
-        //g.Prim(1);
+
+        
        g.DFS(s);
        g.BFS(s);
-       //g.MST_Prim(s);   
-       //g.SPT_Dijkstra(s);               
+
+
+       int[] dist = g.SPT_Dijkstra(s);
+       //System.err.println("------------------");
+       for(int i = 2;i<14;i++){
+         dist = g.SPT_Dijkstra(i);
+         System.err.println("------------------");
+       }
+        System.out.println("\nDijkstra -> Distances from vert(" + g.toChar(s) + ")");
+       for(int i =1;i<dist.length;i++){
+        System.out.println(g.toChar(i)+ " : " + dist[i]);
+       }
+
     }
 }
