@@ -398,48 +398,29 @@ class Graph {
         }
     }
 
-	public void MST_Prim(int s)
-    {
-        int[] dist = new int[V+1]; // Array to store distances from source
-        int[] parent = new int[V+1]; // Array to store parent vertices in MST
-        int[] hPos = new int[V+1]; // Array to store positions of vertices in the heap
-
-        // Initialize distances with infinity and parent vertices as -1
-        for (int i = 0; i <= V; i++) {
-            dist[i] = Integer.MAX_VALUE;
-            parent[i] = -1;
+	public void MST_Prim(int s) {
+        boolean[] visited = new boolean[V+1]; // Array to track visited vertices
+        int[] mst = new int[V+1]; // Array to store MST vertices
+        mst[0] = s; // Start with the source vertex
+        int totalWgt = 0; // Total weight of the MST
+        int numEdgesInMST = 0; // Number of edges in the MST
+    
+        visited[s] = true; // Mark the source vertex as visited
+    
+        // Iterate until the number of edges in the MST reaches V - 1
+        while (numEdgesInMST < V - 1) {
+            graphEdge[] edges = getEdgesFromVerts(mst); // Get edges from vertices in the MST
+            graphEdge lowest = findLowestEdge(edges); // Find the lowest weighted edge
+            totalWgt += lowest.wgt; // Add the weight of the lowest edge to the total weight
+            mst[lowest.v2] = lowest.v1; // Update the MST with the edge information
+            visited[lowest.v2] = true; // Mark the new vertex as visited
+            numEdgesInMST++; // Increment the number of edges in the MST
         }
-
-        dist[s] = 0; // Distance to source vertex
-
-        Heap h = new Heap(V); // Initialize heap with maximum size V
-        h.insert(s, dist); // Insert the source vertex into the heap
-
-        int wgt_sum = 0; // Total weight of MST
-
-        while (!h.isEmpty()) {
-            int u = h.remove(dist); // Extract the vertex with minimum distance from the heap
-            wgt_sum += dist[u]; // Add the distance to the total weight of MST
-
-            // Iterate through adjacent vertices of u
-            Node node = adj[u];
-            while (node != z) {
-                int v = node.vert;
-                int weight = node.wgt;
-
-                // If v is not yet in MST and the weight of edge u-v is less than the current distance to v
-                if (h.contains(v) && weight < dist[v]) {
-                    dist[v] = weight; // Update the distance to v
-                    parent[v] = u; // Update parent of v
-                    h.siftUp(hPos[v], dist); // Update the position of v in the heap
-                }
-                node = node.next;
-            }
-        }
-
-        System.out.print("\n\nWeight of MST = " + wgt_sum + "\n");
-
+    
+        System.out.print("\n\nWeight of MST = " + totalWgt + "\n");
     }
+    
+    
     public void Prim(int v)
     {
         boolean[] visited = new boolean[V+1];
