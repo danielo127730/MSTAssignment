@@ -20,6 +20,14 @@ class Heap
         a = new int[maxSize + 1];
     }
 
+    public boolean contains(int x) {
+        for (int i = 1; i <= N; i++) {
+            if (a[i] == x) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public boolean isEmpty() 
     {
@@ -83,7 +91,7 @@ class Heap
 
     public void insert( int x,int[] dist) 
     {
-        System.out.println("Before insert a.len =" + getLength(a));
+        System.out.println("\nBefore insert a.len =" + getLength(a));
         a[++N] = x;
         siftUp( N,dist);
     }
@@ -342,6 +350,8 @@ class Graph {
 
     public void DFS(int v)
     {
+        System.out.print("DFS:\n");
+
         visited = new boolean[V+1];
 
         DFS_Trav(v);
@@ -351,6 +361,8 @@ class Graph {
     private void DFS_Trav(int v){
 
         visited[v] = true;
+        
+
         System.out.print(toChar(v) + " ");
 
         Node node = adj[v];
@@ -387,28 +399,47 @@ class Graph {
     }
 
 	public void MST_Prim(int s)
-	{
-        int v, u;
-        int wgt, wgt_sum = 0;
-        int[]  dist, parent, hPos;
-        Node t;
+    {
+        int[] dist = new int[V+1]; // Array to store distances from source
+        int[] parent = new int[V+1]; // Array to store parent vertices in MST
+        int[] hPos = new int[V+1]; // Array to store positions of vertices in the heap
 
-        //code here
-        
-        //dist[s] = 0;
-        
-        //Heap h =  new Heap(V, dist, hPos);
-        //h.insert(s);
-        
-        //while ( ...)  
-        //{
-            // most of alg here
-            
-       // }
+        // Initialize distances with infinity and parent vertices as -1
+        for (int i = 0; i <= V; i++) {
+            dist[i] = Integer.MAX_VALUE;
+            parent[i] = -1;
+        }
+
+        dist[s] = 0; // Distance to source vertex
+
+        Heap h = new Heap(V); // Initialize heap with maximum size V
+        h.insert(s, dist); // Insert the source vertex into the heap
+
+        int wgt_sum = 0; // Total weight of MST
+
+        while (!h.isEmpty()) {
+            int u = h.remove(dist); // Extract the vertex with minimum distance from the heap
+            wgt_sum += dist[u]; // Add the distance to the total weight of MST
+
+            // Iterate through adjacent vertices of u
+            Node node = adj[u];
+            while (node != z) {
+                int v = node.vert;
+                int weight = node.wgt;
+
+                // If v is not yet in MST and the weight of edge u-v is less than the current distance to v
+                if (h.contains(v) && weight < dist[v]) {
+                    dist[v] = weight; // Update the distance to v
+                    parent[v] = u; // Update parent of v
+                    h.siftUp(hPos[v], dist); // Update the position of v in the heap
+                }
+                node = node.next;
+            }
+        }
+
         System.out.print("\n\nWeight of MST = " + wgt_sum + "\n");
-        
-                  		
-	}
+
+    }
     public void Prim(int v)
     {
         boolean[] visited = new boolean[V+1];
@@ -621,21 +652,20 @@ public class GraphLists {
 
         Graph g = new Graph(fname);
 
-        
-       g.DFS(s);
-       g.BFS(s);
+        g.DFS(s);
+        g.BFS(s);
 
+        g.MST_Prim(s);
 
-       int[] dist = g.SPT_Dijkstra(s);
-       //System.err.println("------------------");
-       for(int i = 2;i<14;i++){
-         dist = g.SPT_Dijkstra(i);
-         System.err.println("------------------");
-       }
+        // Comment out the loop that calculates SPTs
+        /*int[] dist = g.SPT_Dijkstra(s);
+        for(int i = 2;i<14;i++){
+            dist = g.SPT_Dijkstra(i);
+            System.err.println("------------------");
+        }
         System.out.println("\nDijkstra -> Distances from vert(" + g.toChar(s) + ")");
-       for(int i =1;i<dist.length;i++){
-        System.out.println(g.toChar(i)+ " : " + dist[i]);
-       }
-
+        for(int i =1;i<dist.length;i++){
+            System.out.println(g.toChar(i)+ " : " + dist[i]);
+        }*/
     }
 }
